@@ -13,12 +13,7 @@ def boats_get_post():
     if request.method == 'POST':
         content = request.get_json()
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
-        # print("The url is: ", url)
-        new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length'], 'docked': 'null'})
-        client.put(new_boat)
-        url = "http://localhost:8080/boats/" + str(new_boat.key.id)
-        print("Now the url is: ", url)
-        new_boat["live link"] = url
+        new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
         return str(new_boat.key.id)
     elif request.method == 'GET':
@@ -26,6 +21,8 @@ def boats_get_post():
         results = list(query.fetch())
         for e in results:
             e["id"] = e.key.id
+            url = "http://localhost:8080/boats/" + str(e.key.id)
+            e["live link"] =url
         return json.dumps(results)
     else:
         return 'Method not recognized'
@@ -65,6 +62,12 @@ def boats_put_delete_get(id):
         second_key = client.key(constants.boats, find_boat_key)
         query2.key_filter(second_key,'=')
         findboatresults = list(query2.fetch())
+        getboatkey = client.key(constants.boats, find_boat_key)
+        print("getboatkey is ", getboatkey)
+        foundboat = client.get(key=getboatkey)
+        foundboat["name"] = "changing the name of this found boat"
+        print("foundboat is now: ", foundboat)
+        client.put(foundboat)
         return (json.dumps(findboatresults))
         # return (json.dumps(queryresults))
     else:
