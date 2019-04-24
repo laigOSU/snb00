@@ -24,7 +24,7 @@ def boats_get_post():
         for e in results:
             e["id"] = e.key.id
             url = "http://localhost:8080/boats/" + str(e.key.id)
-            e["live link"] =url
+            e["boat_url"] =url
         return json.dumps(results)
 
     else:
@@ -45,39 +45,48 @@ def boats_put_delete_get(id):
     elif request.method == 'DELETE':
         key = client.key(constants.boats, int(id))
         client.delete(key)
+        # print("testing query filter")
+        # query = client.query(kind=constants.boats)
+        # first_key = client.key(constants.boats,5660980839186432)
+        # query.key_filter(first_key,'=')
+        # # query.add_filter(key.id, '=', '5660980839186432')
+        # queryresults = list(query.fetch())
+        # # return queryresults["name"]
+        # print(queryresults)
+        # for e in queryresults:
+        #     print("name is ", e["name"])
+        #     print("id is ", e.key.id)
+        #     find_boat_key = e.key.id
+        #     print("find_boat_key is ", find_boat_key)
+        # print("second query by find_boat_key")
+        # query2 = client.query(kind=constants.boats)
+        # second_key = client.key(constants.boats, find_boat_key)
+        # query2.key_filter(second_key,'=')
+        # findboatresults = list(query2.fetch())
+        # getboatkey = client.key(constants.boats, find_boat_key)
+        # print("getboatkey is ", getboatkey)
+        # foundboat = client.get(key=getboatkey)
+        # foundboat["name"] = "changing the name of this found boat"
+        # print("foundboat is now: ", foundboat)
+        # client.put(foundboat)
+        # return (json.dumps(findboatresults))
         return ('',200)
 
     #---- GET: VIEW A SPECIFIC BOAT ----#
     elif request.method == 'GET':
-        my_boat_key = client.key(constants.boats, int(id))
-        requested_boat = client.get(key=my_boat_key)
-        results = json.dumps(requested_boat)
-        print("testing query filter")
         query = client.query(kind=constants.boats)
-        first_key = client.key(constants.boats,5660980839186432)
+        first_key = client.key(constants.boats,int(id))
         query.key_filter(first_key,'=')
-        # query.add_filter(key.id, '=', '5660980839186432')
-        queryresults = list(query.fetch())
-        # return queryresults["name"]
-        print(queryresults)
-        for e in queryresults:
-            print("name is ", e["name"])
-            print("id is ", e.key.id)
-            find_boat_key = e.key.id
-            print("find_boat_key is ", find_boat_key)
-        print("second query by find_boat_key")
-        query2 = client.query(kind=constants.boats)
-        second_key = client.key(constants.boats, find_boat_key)
-        query2.key_filter(second_key,'=')
-        findboatresults = list(query2.fetch())
-        getboatkey = client.key(constants.boats, find_boat_key)
-        print("getboatkey is ", getboatkey)
-        foundboat = client.get(key=getboatkey)
-        foundboat["name"] = "changing the name of this found boat"
-        print("foundboat is now: ", foundboat)
-        client.put(foundboat)
-        return (json.dumps(findboatresults))
-        # return (json.dumps(queryresults))
+        results = list(query.fetch())
+        for e in results:
+            e["id"] = id
+            url = "http://localhost:8080/boats/" + id
+            e["boat_url"] =url
+        return json.dumps(results)
+        # results = json.dumps(requested_boat)
+        # url = "http://localhost:8080/" + id
+        # output = "live link: " + url + ";\n" + results
+        # return (output)
 
     else:
         return 'Method not recognized'
