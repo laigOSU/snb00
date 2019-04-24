@@ -41,7 +41,7 @@ def boats_put_delete_get(id):
         content = request.get_json()
         boat_key = client.key(constants.boats, int(id))
         boat = client.get(key=boat_key)
-        boat.update({"name": content["name"]})
+        boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(boat)
         return ('',200)
     elif request.method == 'DELETE':
@@ -51,6 +51,11 @@ def boats_put_delete_get(id):
     elif request.method == 'GET':
         my_boat_key = client.key(constants.boats, int(id))
         requested_boat = client.get(key=my_boat_key)
-        return (json.dumps(requested_boat))
+        results = json.dumps(requested_boat)
+        print("The id is", id)
+        url = "live link: http://localhost:8080/boats/" + id
+        output = url + '\n' + results
+        # return (results)
+        return (output)
     else:
-        return 'Method not recogonized'
+        return 'Method not recognized'
