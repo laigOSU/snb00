@@ -49,12 +49,10 @@ def boats_put_delete_get(id):
         results = json.dumps(requested_boat)
         print("testing query filter")
         query = client.query(kind=constants.boats)
-        query.add_filter('name', '=', 'Sea Witch 7')
+        first_key = client.key(constants.boats,5660980839186432)
+        query.key_filter(first_key,'=')
+        # query.add_filter(key.id, '=', '5660980839186432')
         queryresults = list(query.fetch())
-        # print("The id is", id)
-        # url = "live link: http://localhost:8080/boats/" + id
-        # output = url + '\n' + results
         return (json.dumps(queryresults))
-        # return (output)
     else:
         return 'Method not recognized'
