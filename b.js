@@ -13,27 +13,22 @@ def boats_get_post():
     if request.method == 'POST':
         content = request.get_json()
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
+        # print("The url is: ", url)
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length'], 'docked': 'null'})
+        client.put(new_boat)
+        url = "http://localhost:8080/boats/" + str(new_boat.key.id)
+        print("Now the url is: ", url)
+        new_boat["live link"] = url
         client.put(new_boat)
         return str(new_boat.key.id)
     elif request.method == 'GET':
         query = client.query(kind=constants.boats)
-        q_limit = int(request.args.get('limit', '2'))
-        q_offset = int(request.args.get('offset', '0'))
-        g_iterator = query.fetch(limit= q_limit, offset=q_offset)
-        pages = g_iterator.pages
-        results = list(next(pages))
-        if g_iterator.next_page_token:
-            next_offset = q_offset + q_limit
-            next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
-        else:
-            next_url = None
+        results = list(query.fetch())
         for e in results:
             e["id"] = e.key.id
-        output = {"boats": results}
-        if next_url:
-            output["next"] = next_url
-        return json.dumps(output)
+        return json.dumps(results)
+    else:
+        return 'Method not recognized'
 
 @bp.route('/<id>', methods=['PUT','DELETE','GET'])
 def boats_put_delete_get(id):
@@ -52,10 +47,14 @@ def boats_put_delete_get(id):
         my_boat_key = client.key(constants.boats, int(id))
         requested_boat = client.get(key=my_boat_key)
         results = json.dumps(requested_boat)
-        print("The id is", id)
-        url = "live link: http://localhost:8080/boats/" + id
-        output = url + '\n' + results
-        # return (results)
-        return (output)
+        print("testing query filter")
+        query = client.query(kind=constants.boats)
+        query.add_filter('name', '=', 'Sea Witch 7')
+        queryresults = list(query.fetch())
+        # print("The id is", id)
+        # url = "live link: http://localhost:8080/boats/" + id
+        # output = url + '\n' + results
+        return (json.dumps(queryresults))
+        # return (output)
     else:
         return 'Method not recognized'
