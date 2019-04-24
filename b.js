@@ -8,14 +8,16 @@ client = datastore.Client()
 bp = Blueprint('boat', __name__, url_prefix='/boats')
 
 @bp.route('/', methods=['POST','GET'])
-# def guests_get_post():
 def boats_get_post():
+    #---- POST: CREATE A NEW BOAT ----#
     if request.method == 'POST':
         content = request.get_json()
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
         return str(new_boat.key.id)
+
+    #---- GET: VIEW ALL BOATS ----#
     elif request.method == 'GET':
         query = client.query(kind=constants.boats)
         results = list(query.fetch())
@@ -24,11 +26,13 @@ def boats_get_post():
             url = "http://localhost:8080/boats/" + str(e.key.id)
             e["live link"] =url
         return json.dumps(results)
+
     else:
         return 'Method not recognized'
 
 @bp.route('/<id>', methods=['PUT','DELETE','GET'])
 def boats_put_delete_get(id):
+    #---- PUT: MODIFY A SPECIFIC BOAT ----#
     if request.method == 'PUT':
         content = request.get_json()
         boat_key = client.key(constants.boats, int(id))
@@ -36,10 +40,14 @@ def boats_put_delete_get(id):
         boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(boat)
         return ('',200)
+
+    #---- DELETE: REMOVE A SPECIFIC BOAT ----#
     elif request.method == 'DELETE':
         key = client.key(constants.boats, int(id))
         client.delete(key)
         return ('',200)
+
+    #---- GET: VIEW A SPECIFIC BOAT ----#
     elif request.method == 'GET':
         my_boat_key = client.key(constants.boats, int(id))
         requested_boat = client.get(key=my_boat_key)
@@ -62,7 +70,14 @@ def boats_put_delete_get(id):
         second_key = client.key(constants.boats, find_boat_key)
         query2.key_filter(second_key,'=')
         findboatresults = list(query2.fetch())
+        getboatkey = client.key(constants.boats, find_boat_key)
+        print("getboatkey is ", getboatkey)
+        foundboat = client.get(key=getboatkey)
+        foundboat["name"] = "changing the name of this found boat"
+        print("foundboat is now: ", foundboat)
+        client.put(foundboat)
         return (json.dumps(findboatresults))
         # return (json.dumps(queryresults))
+
     else:
         return 'Method not recognized'
