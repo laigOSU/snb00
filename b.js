@@ -53,6 +53,11 @@ def boats_put_delete_get(id):
         query.key_filter(first_key,'=')
         # query.add_filter(key.id, '=', '5660980839186432')
         queryresults = list(query.fetch())
+        # return queryresults["name"]
+        print(queryresults)
+        for e in queryresults:
+            print("name is ", e["name"])
+            print("id is ", e.key.id)
         return (json.dumps(queryresults))
     else:
         return 'Method not recognized'
