@@ -61,39 +61,10 @@ def boats_put_delete_get(id):
             slip_key = client.key(constants.slips, slip_id)
             slip = client.get(key=slip_key)
             slip["current_boat"] = "null"
+            slip["arrival_date"] = "null"
             client.put(slip)
-        # print("queryresults[current_boat] is: ", str(queryresults["current_boat"]))
-
-        #
-
         client.delete(key)
 
-
-        # print("testing query filter")
-        # query = client.query(kind=constants.boats)
-        # first_key = client.key(constants.boats,5660980839186432)
-        # query.key_filter(first_key,'=')
-        # # query.add_filter(key.id, '=', '5660980839186432')
-        # queryresults = list(query.fetch())
-        # # return queryresults["name"]
-        # print(queryresults)
-        # for e in queryresults:
-        #     print("name is ", e["name"])
-        #     print("id is ", e.key.id)
-        #     find_boat_key = e.key.id
-        #     print("find_boat_key is ", find_boat_key)
-        # print("second query by find_boat_key")
-        # query2 = client.query(kind=constants.boats)
-        # second_key = client.key(constants.boats, find_boat_key)
-        # query2.key_filter(second_key,'=')
-        # findboatresults = list(query2.fetch())
-        # getboatkey = client.key(constants.boats, find_boat_key)
-        # print("getboatkey is ", getboatkey)
-        # foundboat = client.get(key=getboatkey)
-        # foundboat["name"] = "changing the name of this found boat"
-        # print("foundboat is now: ", foundboat)
-        # client.put(foundboat)
-        # return (json.dumps(findboatresults))
         return ('',200)
 
     #---- GET: VIEW A SPECIFIC BOAT ----#
