@@ -30,12 +30,10 @@ def slips_get_post():
     else:
         return 'Method not recogonized'
 
-@bp.route('/<id>', methods=['PUT','DELETE'])
+@bp.route('/<id>', methods=['PUT','DELETE','GET'])
 def slips_put_delete(id):
     #---- PUT: MODIFY A SPECIFIC SLIP ----#
     if request.method == 'PUT':
-
-        # Trying to assign a boat to an occupied slip produces a 403 error
         # Get the input
         content = request.get_json()
 
@@ -44,14 +42,11 @@ def slips_put_delete(id):
         my_slip = client.get(key=slip_key)
         print("my_slip[current_boat] is: ", my_slip["current_boat"])
 
-        # my_slip.update({"number": content["number"], "current_boat": content["current_boat"],
-        #   "arrival_date": content["arrival_date"]})
-
         print("my_slip is: ", my_slip)
         print("my_slip.keys() is: ", my_slip.keys())
         # print("my_slip.keys()[current_boat] is", my_slip.keys()[current_boat])
 
-
+        # Trying to assign a boat to an occupied slip produces a 403 error
         if content["current_boat"] != "null" and my_slip["current_boat"] != "null":
             return ('This slip is already occupied',403)
         else:
@@ -59,21 +54,6 @@ def slips_put_delete(id):
               "arrival_date": content["arrival_date"]})
             client.put(my_slip)
             return('Modification entered',200)
-
-
-
-        # print("user sent current_boat as: ", content["current_boat"])
-        # print("my_slip is: ", my_slip)
-        # currboat = my_slip["current_boat"]
-        # print("current boat is: ", currboat)
-        # check if current_boat != null
-
-        # my_slip.update({"number": content["number"], "current_boat": content["current_boat"],
-        #   "arrival_date": content["arrival_date"]})
-        # client.put(slip)
-
-        # return ("current boat is: ", currboat)
-
 
     #---- DELETE: REMOVE A SPECIFIC SLIP ----#
     elif request.method == 'DELETE':
@@ -90,10 +70,18 @@ def slips_put_delete(id):
         first_key = client.key(constants.slips,int(id))
         query.key_filter(first_key,'=')
         results = list(query.fetch())
+
         for e in results:
             e["id"] = id
             url = "http://localhost:8080/slips/" + id
-            e["slip_url"] =url
+            e["slip_url"] = url
+
+            #If slip has a boat, get the boat id too
+            my_slip = client.get(key=first_key)
+            if my_slip["current_boat"] != "null":
+                boat_id = my_slip["current_boat"]
+                boaturl = "http://localhost:8080/boats/" + boat_id
+                e["boat_url"] =  boaturl
         return json.dumps(results)
 
     else:
