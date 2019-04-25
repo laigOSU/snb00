@@ -43,8 +43,32 @@ def boats_put_delete_get(id):
 
     #---- DELETE: REMOVE A SPECIFIC BOAT ----#
     elif request.method == 'DELETE':
+        # Get the boat
         key = client.key(constants.boats, int(id))
+
+        # Check if boat is docked in a slip --> if boat_id == slip["current_boat"]
+        # Get that slip
+        query = client.query(kind=constants.slips)
+        query.add_filter('current_boat', '=', id)
+        queryresults = list(query.fetch())
+        print("queryresults is: ", queryresults)
+        for e in queryresults:
+            print("number is: ", e["number"])
+            print("current_boat is: ", e["current_boat"])
+            print("slip id is: ", e.key.id)
+            slip_id = e.key.id
+
+            slip_key = client.key(constants.slips, slip_id)
+            slip = client.get(key=slip_key)
+            slip["current_boat"] = "null"
+            client.put(slip)
+        # print("queryresults[current_boat] is: ", str(queryresults["current_boat"]))
+
+        #
+
         client.delete(key)
+
+
         # print("testing query filter")
         # query = client.query(kind=constants.boats)
         # first_key = client.key(constants.boats,5660980839186432)
@@ -83,10 +107,7 @@ def boats_put_delete_get(id):
             url = "http://localhost:8080/boats/" + id
             e["boat_url"] =url
         return json.dumps(results)
-        # results = json.dumps(requested_boat)
-        # url = "http://localhost:8080/" + id
-        # output = "live link: " + url + ";\n" + results
-        # return (output)
+
 
     else:
         return 'Method not recognized'
