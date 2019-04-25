@@ -23,7 +23,8 @@ def boats_get_post():
         results = list(query.fetch())
         for e in results:
             e["id"] = e.key.id
-            url = "http://localhost:8080/boats/" + str(e.key.id)
+            # url = "http://localhost:8080/boats/" + str(e.key.id)
+            url = constants.local_url + constants.boats + "/" + str(e.key.id)
             e["boat_url"] =url
         return json.dumps(results)
 
@@ -75,7 +76,8 @@ def boats_put_delete_get(id):
         results = list(query.fetch())
         for e in results:
             e["id"] = id
-            url = "http://localhost:8080/boats/" + id
+            # url = "http://localhost:8080/boats/" + id
+            url = constants.local_url + constants.boats + "/" + id
             e["boat_url"] =url
         return json.dumps(results)
 
