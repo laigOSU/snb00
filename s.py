@@ -24,7 +24,7 @@ def slips_get_post():
         for e in results:
             e["id"] = e.key.id
             # url = "http://localhost:8080/slips/" + str(e.key.id)
-            url = constants.local_url + constants.slips + "/" + str(e.key.id)
+            url = constants.appspot_url + constants.slips + "/" + str(e.key.id)
             e["slip_url"] =url
         return json.dumps(results)
 
@@ -73,7 +73,7 @@ def slips_put_delete(id):
         for e in results:
             e["id"] = id
             # url = "http://localhost:8080/slips/" + id
-            url = constants.local_url + constants.slips + "/" + id
+            url = constants.appspot_url + constants.slips + "/" + id
             e["slip_url"] = url
 
             #If slip has a boat, get the boat id too
@@ -81,7 +81,7 @@ def slips_put_delete(id):
             if my_slip["current_boat"] != "null":
                 boat_id = my_slip["current_boat"]
                 # boaturl = "http://localhost:8080/boats/" + boat_id
-                boaturl = constants.local_url + constants.boats + "/" + boat_id
+                boaturl = constants.appspot_url + constants.boats + "/" + boat_id
                 e["boat_url"] =  boaturl
         return json.dumps(results)
 
