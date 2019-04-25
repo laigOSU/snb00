@@ -23,7 +23,8 @@ def slips_get_post():
         results = list(query.fetch())
         for e in results:
             e["id"] = e.key.id
-            url = "http://localhost:8080/slips/" + str(e.key.id)
+            # url = "http://localhost:8080/slips/" + str(e.key.id)
+            url = constants.local_url + constants.slips + "/" + str(e.key.id)
             e["slip_url"] =url
         return json.dumps(results)
 
@@ -63,8 +64,6 @@ def slips_put_delete(id):
 
     #---- GET: VIEW A SPECIFIC SLIP ----#
     elif request.method == 'GET':
-        # TODO -->>>> Also check if current_boat != null, then get the boat_ID and simply print boat_url
-
         # Get the specific slip
         query = client.query(kind=constants.slips)
         first_key = client.key(constants.slips,int(id))
@@ -73,50 +72,64 @@ def slips_put_delete(id):
 
         for e in results:
             e["id"] = id
-            url = "http://localhost:8080/slips/" + id
+            # url = "http://localhost:8080/slips/" + id
+            url = constants.local_url + constants.slips + "/" + id
             e["slip_url"] = url
 
             #If slip has a boat, get the boat id too
             my_slip = client.get(key=first_key)
             if my_slip["current_boat"] != "null":
                 boat_id = my_slip["current_boat"]
-                boaturl = "http://localhost:8080/boats/" + boat_id
+                # boaturl = "http://localhost:8080/boats/" + boat_id
+                boaturl = constants.local_url + constants.boats + "/" + boat_id
                 e["boat_url"] =  boaturl
         return json.dumps(results)
 
     else:
         return 'Method not recogonized'
 
-@bp.route('/<lid>/boats/<gid>', methods=['PUT','DELETE'])
-def add_delete_reservation(lid,gid):
+@bp.route('/<sid>/boats/<bid>', methods=['PUT','DELETE'])
+def add_delete_docking(sid,bid):
+    #---- PUT: DOCK A SPECIFIC BOAT TO A SPECIFIC SLIP ----#
     if request.method == 'PUT':
-        slip_key = client.key(constants.slips, int(lid))
+        content = request.get_json()
+        slip_key = client.key(constants.slips, int(sid))
         slip = client.get(key=slip_key)
-        boat_key = client.key(constants.boats, int(gid))
+        boat_key = client.key(constants.boats, int(bid))
         boat = client.get(key=boat_key)
-        if 'boats' in slip.keys():
-            slip['boats'].append(boat.id)
+
+        # Trying to assign a boat to an occupied slip produces a 403 error
+        print("slip[current_boat]: ", slip["current_boat"])
+        if slip["current_boat"] != "null":
+            return ('This slip is already occupied',403)
         else:
-            slip['boats'] = [boat.id]
-        client.put(slip)
-        return('',200)
-    if request.method == 'DELETE':
-        slip_key = client.key(constants.slips, int(lid))
-        slip = client.get(key=slip_key)
-        if 'boats' in slip.keys():
-            slip['boats'].remove(int(gid))
+            slip.update({"number": content["number"], "current_boat": content["current_boat"],
+              "arrival_date": content["arrival_date"]})
             client.put(slip)
+            return('Boat added to slip',200)
+
+    #---- DELETE: REMOVE A SPECIFIC BOAT FROM A SPECIFIC SLIP ----#
+    if request.method == 'DELETE':
+        slip_key = client.key(constants.slips, int(sid))
+        slip = client.get(key=slip_key)
+        print("slip[current_boat]: ", slip["current_boat"])
+        slip["current_boat"] = "null"
+        slip["arrival_date"] = "null"
+        client.put(slip)
+        # if 'boats' in slip.keys():
+        #     slip['boats'].remove(int(bid))
+        #     client.put(slip)
         return('',200)
 
-@bp.route('/<id>/boats', methods=['GET'])
-def get_reservations(id):
-    slip_key = client.key(constants.slips, int(id))
-    slip = client.get(key=slip_key)
-    boat_list  = []
-    if 'boats' in slip.keys():
-        for gid in slip['boats']:
-            boat_key = client.key(constants.boats, int(gid))
-            boat_list.append(boat_key)
-        return json.dumps(client.get_multi(boat_list))
-    else:
-        return json.dumps([])
+# @bp.route('/<id>/boats', methods=['GET'])
+# def get_reservations(id):
+#     slip_key = client.key(constants.slips, int(id))
+#     slip = client.get(key=slip_key)
+#     boat_list  = []
+#     if 'boats' in slip.keys():
+#         for bid in slip['boats']:
+#             boat_key = client.key(constants.boats, int(bid))
+#             boat_list.append(boat_key)
+#         return json.dumps(client.get_multi(boat_list))
+#     else:
+#         return json.dumps([])
