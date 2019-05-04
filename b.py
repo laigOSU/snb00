@@ -79,6 +79,21 @@ def boats_put_delete_get(id):
                 print("i is: ", i)
                 print("i[id] is: ", i["id"])
                 print("i[cargo_url] is: ", i["cargo_url"])
+                cargo_id = i["id"]
+                cargo_key = client.key(constants.cargos, int(cargo_id))
+                cargo = client.get(key=cargo_key)
+                print("before update cargo[carrier]")
+                print("cargo[carrier][id] was: ", cargo["carrier"]["id"])
+                print("cargo[carrier][name] was: ", cargo["carrier"]["name"])
+                print("cargo[carrier][boat_url] was: ", cargo["carrier"]["boat_url"])
+
+                cargo["carrier"]["id"] = "null"
+                cargo["carrier"]["name"] = "null"
+                cargo["carrier"]["boat_url"] = "null"
+                client.put(cargo)
+                print("cargo[carrier][id] is now: ", cargo["carrier"]["id"])
+                print("cargo[carrier][name] is now: ", cargo["carrier"]["name"])
+                print("cargo[carrier][boat_url] is now: ", cargo["carrier"]["boat_url"])
 
 
         # 3. Actually delete the boat <-- UNCOMMENT THIS AFTER DEBUG
