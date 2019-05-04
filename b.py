@@ -15,6 +15,10 @@ def boats_get_post():
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
+        boat_id = str(new_boat.key.id)
+        url = constants.appspot_url + constants.boats + "/" + boat_id
+        new_boat["self"] = url
+        client.put(new_boat)
         return (str(new_boat.key.id), 201)
 
     #---- GET: VIEW ALL BOATS ----#
@@ -24,8 +28,9 @@ def boats_get_post():
         for e in results:
             e["id"] = e.key.id
             # url = "http://localhost:8080/boats/" + str(e.key.id)
-            url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
-            e["boat_url"] =url
+            # url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
+            # e["boat_url"] =url
+        print("Viewing all boats.")
         return json.dumps(results)
 
     else:
@@ -77,8 +82,9 @@ def boats_put_delete_get(id):
         for e in results:
             e["id"] = id
             # url = "http://localhost:8080/boats/" + id
-            url = constants.appspot_url + constants.boats + "/" + id
-            e["boat_url"] =url
+            # url = constants.appspot_url + constants.boats + "/" + id
+            # e["boat_url"] =url
+        print("Viewing specific boat #", id)
         return json.dumps(results)
 
     else:
@@ -112,7 +118,21 @@ def add_delete_docking(bid,cid):
             else:
                 # boat['cargo'] = [cargo_json]
                 print("Adding first cargo to this boat.")
-            client.put(boat)
+            # client.put(boat)
+
+
+            # Update cargo[carrier] to = boat
+
+            # cargo["carrier"].update({'name': boat["name"], self: boat["self"], "id": bid })
+            # print("boat[id]: ", boat["id"])
+            # print("boat[name]: ", boat["name"])
+
+            print("boat: ", boat)
+            print("boat.key.id: ", boat.key.id)
+            print("boat[name]: ", boat["name"])
+            print("boat[self]: ", boat["self"])
+            # client.put(cargo)
+
             return("Cargo loaded", 200)
         else:
             print("Cargo already assigned to a boat, cannot load here.")
