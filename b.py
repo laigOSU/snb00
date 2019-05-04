@@ -95,9 +95,8 @@ def boats_put_delete_get(id):
                 print("cargo[carrier][name] is now: ", cargo["carrier"]["name"])
                 print("cargo[carrier][boat_url] is now: ", cargo["carrier"]["boat_url"])
 
-
         # 3. Actually delete the boat <-- UNCOMMENT THIS AFTER DEBUG
-        # client.delete(boat_key)
+        client.delete(boat_key)
 
         return ('',200)
 
