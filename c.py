@@ -44,7 +44,7 @@ def cargo_put_delete_get(id):
         content = request.get_json()
         cargo_key = client.key(constants.cargos, int(id))
         cargo = client.get(key=cargo_key)
-        cargo.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
+        cargo.update({"weight": content["weight"], 'content': content['content'], 'delivery_date': content['delivery_date']})
         client.put(cargo)
         return ('',200)
 
