@@ -50,18 +50,19 @@ def boats_put_delete_get(id):
     #---- DELETE: REMOVE A SPECIFIC BOAT ----#
     elif request.method == 'DELETE':
         # Get the boat
-        key = client.key(constants.boats, int(id))
+        boat_key = client.key(constants.boats, int(id))
+        boat = client.get(key=boat_key)
 
-        # Check if boat is docked in a slip --> if boat_id == slip["current_boat"]
+        # 1. Check if boat is docked in a slip --> if boat_id == slip["current_boat"]
         # Get that slip
         query = client.query(kind=constants.slips)
         query.add_filter('current_boat', '=', id)
         queryresults = list(query.fetch())
         print("queryresults is: ", queryresults)
         for e in queryresults:
-            print("number is: ", e["number"])
-            print("current_boat is: ", e["current_boat"])
-            print("slip id is: ", e.key.id)
+            # print("number is: ", e["number"])
+            # print("current_boat is: ", e["current_boat"])
+            # print("slip id is: ", e.key.id)
             slip_id = e.key.id
 
             slip_key = client.key(constants.slips, slip_id)
@@ -70,7 +71,18 @@ def boats_put_delete_get(id):
             slip["arrival_date"] = "null"
             client.put(slip)
 
-        client.delete(key)
+        # 2. Check if boat contains cargo, if so, update each cargo[carrier] to null
+        if 'cargo' in boat.keys():
+            print("boat[cargo] is: ", boat["cargo"])
+            print("type of boat[cargo] is: ", type(boat["cargo"]))
+            for i in boat["cargo"]:
+                print("i is: ", i)
+                print("i[id] is: ", i["id"])
+                print("i[cargo_url] is: ", i["cargo_url"])
+
+
+        # 3. Actually delete the boat <-- UNCOMMENT THIS AFTER DEBUG
+        # client.delete(boat_key)
 
         return ('',200)
 
