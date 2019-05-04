@@ -103,7 +103,8 @@ def add_delete_docking(bid,cid):
             # print("type of boat[cargo][id]: ", type(boat["cargo"]["id"]))
             # print("cargo.key.id is: ", cargo.key.id)
             # print("type of cargo.key.id is: ", type(cargo.key.id))
-            #
+
+            cargo_loaded = False
             print("boat[cargo] is: ", boat["cargo"])
             for e in boat["cargo"]:
                 print(e["id"])
@@ -111,8 +112,13 @@ def add_delete_docking(bid,cid):
                 # if e["id"] == cargo.key.id:
                 if int(cid) == e["id"]:
                     print("Cargo ", int(cid), "is already loaded on this boat")
-                else:
-                    print("Cargo ", int(cid), "is NOT yet loaded on this boat")
+                    cargo_loaded = True
+                # else:
+                #     print("Cargo ", int(cid), "is NOT yet loaded on this boat")
+            if cargo_loaded == True:
+                   print("Cargo ", cid ," already loaded. Print a 403 error here.")
+            else:
+                print("Cargo ", cid, " not yet loaded. Append here.") 
                     # # boat['cargo'].append(cargo_json)
             # for e in boat["cargo"]:
             #     print("e[self] is: ",str(e["id"]))
