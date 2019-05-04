@@ -48,29 +48,32 @@ def cargo_put_delete_get(id):
         client.put(cargo)
         return ('',200)
 
-    #---- DELETE: REMOVE A SPECIFIC CARGO ----#
+    #---- DELETE: ELIMINATE A SPECIFIC CARGO (NOT the same as unload)----#
     elif request.method == 'DELETE':
         # Get the cargo
-        key = client.key(constants.cargos, int(id))
+        cargo_key = client.key(constants.cargos, int(id))
+        cargo = client.get(key=cargo_key)
 
-        # # Check if cargo is docked in a slip --> if cargo_id == slip["current_cargo"]
-        # # Get that slip
-        # query = client.query(kind=constants.slips)
-        # query.add_filter('current_cargo', '=', id)
-        # queryresults = list(query.fetch())
-        # print("queryresults is: ", queryresults)
-        # for e in queryresults:
-        #     print("number is: ", e["number"])
-        #     print("current_cargo is: ", e["current_cargo"])
-        #     print("cargo id is: ", e.key.id)
-        #     slip_id = e.key.id
-        #
-        #     slip_key = client.key(constants.slips, slip_id)
-        #     slip = client.get(key=slip_key)
-        #     slip["current_cargo"] = "null"
-        #     slip["arrival_date"] = "null"
-        #     client.put(slip)
-        client.delete(key)
+        # 1. Update boat, if any
+        if cargo["carrier"]["name"] != "null":
+            # Get the boat
+            boat_id = cargo["carrier"]["id"]
+            boat_key = client.key(constants.boats, int(boat_id))
+            boat = client.get(key=boat_key)
+            print("boat is: ", boat)
+
+            # Update boat's cargo array
+            cargo_json = {"id": cargo.id, "cargo_url": cargo["cargo_url"]}
+            print("cargo.id is: ", cargo.id)
+            print("type of cargo.id is: ", type(cargo.id))
+            print("cargo.key.id is: ", cargo.key.id)
+            print("type of cargo.key.id is: ", type(cargo.key.id))
+
+            boat["cargo"].remove(cargo_json)
+            client.put(boat)
+
+        # 2. Remove the cargo entirely
+        client.delete(cargo_key)
 
         return ('',200)
 
@@ -87,11 +90,11 @@ def cargo_put_delete_get(id):
         # The below is for debugging --------
         cargo_key = client.key(constants.cargos, int(id))
         cargo = client.get(key=cargo_key)
-        print("cargo[carrier]: ", cargo["carrier"])
-        print("cargo[carrier][name]: ", cargo["carrier"]["name"])
-        print("cargo[carrier][id]: ", cargo["carrier"]["id"])
-        print("cargo[carrier][boat_url]: ", cargo["carrier"]["boat_url"])
-        print("cargo is", cargo)
+        # print("cargo[carrier]: ", cargo["carrier"])
+        # print("cargo[carrier][name]: ", cargo["carrier"]["name"])
+        # print("cargo[carrier][id]: ", cargo["carrier"]["id"])
+        # print("cargo[carrier][boat_url]: ", cargo["carrier"]["boat_url"])
+        # print("cargo is", cargo)
         # The above is for debugging --------
 
         return json.dumps(results)
