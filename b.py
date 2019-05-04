@@ -15,7 +15,7 @@ def boats_get_post():
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
-        return str(new_boat.key.id)
+        return (str(new_boat.key.id), 201)
 
     #---- GET: VIEW ALL BOATS ----#
     elif request.method == 'GET':
@@ -24,7 +24,7 @@ def boats_get_post():
         for e in results:
             e["id"] = e.key.id
             # url = "http://localhost:8080/boats/" + str(e.key.id)
-            url = constants.local_url + constants.boats + "/" + str(e.key.id)
+            url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
             e["boat_url"] =url
         return json.dumps(results)
 
@@ -77,10 +77,76 @@ def boats_put_delete_get(id):
         for e in results:
             e["id"] = id
             # url = "http://localhost:8080/boats/" + id
-            url = constants.local_url + constants.boats + "/" + id
+            url = constants.appspot_url + constants.boats + "/" + id
             e["boat_url"] =url
         return json.dumps(results)
 
-
     else:
         return 'Method not recognized'
+
+@bp.route('/<bid>/cargos/<cid>', methods=['PUT','DELETE'])
+def add_delete_docking(bid,cid):
+    #---- PUT: APPEND A CARGO ONTO THIS BOAT ----#
+    if request.method == 'PUT':
+        content = request.get_json()
+        boat_key = client.key(constants.boats, int(bid))
+        boat = client.get(key=boat_key)
+        cargo_key = client.key(constants.cargos, int(cid))
+        cargo = client.get(key=cargo_key)
+
+
+        cargo_json = {"id": cargo.id, "self": cargo["self"]}
+        if 'cargo' in boat.keys():
+            # If the cargo is already assigned to another boat, you cannot
+            # assign it to this boat. Throw 403 error.
+            # print("boat[cargo][id]: ", boat["cargo"]["id"])
+            # print("type of boat[cargo][id]: ", type(boat["cargo"]["id"]))
+            # print("cargo.key.id is: ", cargo.key.id)
+            # print("type of cargo.key.id is: ", type(cargo.key.id))
+            #
+            print("boat[cargo] is: ", boat["cargo"])
+            for e in boat["cargo"]:
+                print(e["id"])
+                print(e["self"])
+                # if e["id"] == cargo.key.id:
+                if int(cid) == e["id"]:
+                    print("Cargo ", int(cid), "is already loaded on this boat")
+                else:
+                    print("Cargo ", int(cid), "is NOT yet loaded on this boat")
+                    # # boat['cargo'].append(cargo_json)
+            # for e in boat["cargo"]:
+            #     print("e[self] is: ",str(e["id"]))
+            # if '5740315998683136'in boat["cargo"]:
+            #     print("5740315998683136 is in boat[cargo]")
+            # else:
+            #     print("5740315998683136 NOT in boat[cargo]")
+
+            # if boat['cargo']['id'] == :
+
+        else:
+            boat['cargo'] = [cargo_json]
+        client.put(boat)
+        return('Cargo loaded', 200)
+
+
+        # print("slip[current_boat]: ", slip["current_boat"])
+        # if slip["current_boat"] != "null":
+        #     return ('This slip is already occupied',403)
+        # else:
+        #     slip.update({"number": content["number"], "current_boat": content["current_boat"],
+        #       "arrival_date": content["arrival_date"]})
+        #     client.put(slip)
+        #     return('Boat added to slip',200)
+
+    #---- DELETE: REMOVE A SPECIFIC CARGO FROM A BOAT ----#
+    if request.method == 'DELETE':
+        slip_key = client.key(constants.slips, int(sid))
+        slip = client.get(key=slip_key)
+        print("slip[current_boat]: ", slip["current_boat"])
+        slip["current_boat"] = "null"
+        slip["arrival_date"] = "null"
+        client.put(slip)
+        # if 'boats' in slip.keys():
+        #     slip['boats'].remove(int(bid))
+        #     client.put(slip)
+        return('',200)
