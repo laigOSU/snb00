@@ -96,7 +96,27 @@ def add_delete_docking(bid,cid):
 
 
         cargo_json = {"id": cargo.id, "self": cargo["self"]}
-        if 'cargo' in boat.keys():
+
+        print("cargo[carrier] is: ",cargo["carrier"])
+        print("cargo[carrier][name] is: ",cargo["carrier"]["name"])
+        print("cargo[carrier][id] is: ", cargo["carrier"]["id"])
+        print("cargo id passed in is: ", cid)
+        print("cargo is: ", cargo)
+        # Check if cargo not yet assigned to any boat
+        if cargo["carrier"]["name"] == "null":
+            print("Cargo not yet assigned to any ship. So append (or add).")
+
+            if 'cargo' in boat.keys():
+                # boat['cargo'].append(cargo_json)
+                print("Appending subsequent cargo to this boat")
+            else:
+                # boat['cargo'] = [cargo_json]
+                print("Adding first cargo to this boat.")
+            client.put(boat)
+            return("Cargo loaded", 200)
+        else:
+            print("Cargo already assigned to a boat, cannot load here.")
+            return("Cargo already assigned to a boat.", 403)
             # If the cargo is already assigned to another boat, you cannot
             # assign it to this boat. Throw 403 error.
             # print("boat[cargo][id]: ", boat["cargo"]["id"])
@@ -104,21 +124,22 @@ def add_delete_docking(bid,cid):
             # print("cargo.key.id is: ", cargo.key.id)
             # print("type of cargo.key.id is: ", type(cargo.key.id))
 
-            cargo_loaded = False
-            print("boat[cargo] is: ", boat["cargo"])
-            for e in boat["cargo"]:
-                print(e["id"])
-                print(e["self"])
-                # if e["id"] == cargo.key.id:
-                if int(cid) == e["id"]:
-                    print("Cargo ", int(cid), "is already loaded on this boat")
-                    cargo_loaded = True
-                # else:
-                #     print("Cargo ", int(cid), "is NOT yet loaded on this boat")
-            if cargo_loaded == True:
-                   print("Cargo ", cid ," already loaded. Print a 403 error here.")
-            else:
-                print("Cargo ", cid, " not yet loaded. Append here.") 
+
+            # cargo_loaded = False
+            # print("boat[cargo] is: ", boat["cargo"])
+            # for e in boat["cargo"]:
+            #     print(e["id"])
+            #     print(e["self"])
+            #     # if e["id"] == cargo.key.id:
+            #     if int(cid) == e["id"]:
+            #         print("Cargo ", int(cid), "is already loaded on this boat")
+            #         cargo_loaded = True
+            #     # else:
+            #     #     print("Cargo ", int(cid), "is NOT yet loaded on this boat")
+            # if cargo_loaded == True:
+            #        print("Cargo ", cid ," already loaded. Print a 403 error here.")
+            # else:
+            #     print("Cargo ", cid, " not yet loaded. Append here.")
                     # # boat['cargo'].append(cargo_json)
             # for e in boat["cargo"]:
             #     print("e[self] is: ",str(e["id"]))
@@ -129,20 +150,6 @@ def add_delete_docking(bid,cid):
 
             # if boat['cargo']['id'] == :
 
-        else:
-            boat['cargo'] = [cargo_json]
-        client.put(boat)
-        return('Cargo loaded', 200)
-
-
-        # print("slip[current_boat]: ", slip["current_boat"])
-        # if slip["current_boat"] != "null":
-        #     return ('This slip is already occupied',403)
-        # else:
-        #     slip.update({"number": content["number"], "current_boat": content["current_boat"],
-        #       "arrival_date": content["arrival_date"]})
-        #     client.put(slip)
-        #     return('Boat added to slip',200)
 
     #---- DELETE: REMOVE A SPECIFIC CARGO FROM A BOAT ----#
     if request.method == 'DELETE':
