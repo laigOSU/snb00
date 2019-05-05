@@ -15,33 +15,39 @@ def boats_get_post():
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
-        boat_id = str(new_boat.key.id)
-        url = constants.appspot_url + constants.boats + "/" + boat_id
-        new_boat["boat_url"] = url
-        client.put(new_boat)
         return (str(new_boat.key.id), 201)
 
     #---- GET: VIEW ALL BOATS ----#
     elif request.method == 'GET':
         query = client.query(kind=constants.boats)
-        print("query is: ", query)
-        q_limit = int(request.args.get('limit', '3'))
-        q_offset = int(request.args.get('offset', '0'))
-        g_iterator = query.fetch(limit= q_limit, offset=q_offset)
-        pages = g_iterator.pages
-        results = list(next(pages))
-        if g_iterator.next_page_token:
-            next_offset = q_offset + q_limit
-            next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
-        else:
-            next_url = None
+        results = list(query.fetch())
         for e in results:
             e["id"] = e.key.id
-        output = {"boats": results}
+            url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
+            e["boat_url"] =url
+        return json.dumps(results)
 
-        if next_url:
-            output["next"] = next_url
-        return json.dumps(output)
+        # query = client.query(kind=constants.boats)
+        # print("query is: ", query)
+        # q_limit = int(request.args.get('limit', '3'))
+        # q_offset = int(request.args.get('offset', '0'))
+        # g_iterator = query.fetch(limit= q_limit, offset=q_offset)
+        # pages = g_iterator.pages
+        # results = list(next(pages))
+        # if g_iterator.next_page_token:
+        #     next_offset = q_offset + q_limit
+        #     next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+        # else:
+        #     next_url = None
+        # for e in results:
+        #     e["id"] = e.key.id
+        #     url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
+        #     e["boat_url"] = url
+        # output = {"boats": results}
+        #
+        # if next_url:
+        #     output["next"] = next_url
+        # return json.dumps(output)
 
     else:
         return 'Method not recognized'
@@ -95,15 +101,15 @@ def boats_put_delete_get(id):
                 print("before update cargo[carrier]")
                 print("cargo[carrier][id] was: ", cargo["carrier"]["id"])
                 print("cargo[carrier][name] was: ", cargo["carrier"]["name"])
-                print("cargo[carrier][boat_url] was: ", cargo["carrier"]["boat_url"])
+                # print("cargo[carrier][boat_url] was: ", cargo["carrier"]["boat_url"])
 
                 cargo["carrier"]["id"] = "null"
                 cargo["carrier"]["name"] = "null"
-                cargo["carrier"]["boat_url"] = "null"
+                # cargo["carrier"]["boat_url"] = "null"
                 client.put(cargo)
                 print("cargo[carrier][id] is now: ", cargo["carrier"]["id"])
                 print("cargo[carrier][name] is now: ", cargo["carrier"]["name"])
-                print("cargo[carrier][boat_url] is now: ", cargo["carrier"]["boat_url"])
+                # print("cargo[carrier][boat_url] is now: ", cargo["carrier"]["boat_url"])
 
         # 3. Actually delete the boat <-- UNCOMMENT THIS AFTER DEBUG
         client.delete(boat_key)
@@ -113,14 +119,18 @@ def boats_put_delete_get(id):
     #---- GET: VIEW A SPECIFIC BOAT ----#
     elif request.method == 'GET':
         query = client.query(kind=constants.boats)
-        first_key = client.key(constants.boats,int(id))
-        query.key_filter(first_key,'=')
+        boat_key = client.key(constants.boats,int(id))
+        query.key_filter(boat_key,'=')
+        boat = client.get(key=boat_key)
         results = list(query.fetch())
         for e in results:
             e["id"] = id
             # url = "http://localhost:8080/boats/" + id
-            # url = constants.appspot_url + constants.boats + "/" + id
-            # e["boat_url"] =url
+            url = constants.appspot_url + constants.boats + "/" + id
+            e["boat_url"] =url
+            if 'cargo' in boat.keys():
+                for i in e["cargo"]
+                e["cargo"]["id"] = e["cargo"]["id"]
         print("Viewing specific boat #", id)
         return json.dumps(results)
 
@@ -137,54 +147,29 @@ def add_delete_docking(bid,cid):
         cargo_key = client.key(constants.cargos, int(cid))
         cargo = client.get(key=cargo_key)
 
-
-        cargo_json = {"id": cargo.id, "cargo_url": cargo["cargo_url"]}
-
-        print("cargo[carrier] is: ",cargo["carrier"])
-        print("cargo[carrier][id] is: ", cargo["carrier"]["id"])
-        print("cargo[carrier][name] is: ",cargo["carrier"]["name"])
-        print("cargo[carrier][boat_url] is: ", cargo["carrier"]["boat_url"])
-        print("cargo id passed in is: ", cid)
-        print("cargo is: ", cargo)
-        print("boat: ", boat)
-        print("boat.key.id: ", boat.key.id)
-        print("boat[name]: ", boat["name"])
-        print("boat[boat_url]: ", boat["boat_url"])
-
         # A. Check if cargo not yet assigned to any boat
-        if cargo["carrier"]["name"] == "null":
+        # KEEP THIS:
+        # if 'carrier' in cargo.keys():
+        #     return ("Cargo already assigned", 403)
+        # else:
+        # KEEP THE ABOVE
 
-            # 1. Update the boat--> boat[cargo] = cid
-            print("Cargo not yet assigned to any ship. So append (or add).")
+        # Update cargo side
+        boat_info = {"id": int(bid)}
+        cargo["carrier"] = boat_info
+        client.put(cargo)
 
-            if 'cargo' in boat.keys():
-                boat['cargo'].append(cargo_json)
-                print("Appending subsequent cargo to this boat")
-            else:
-                boat['cargo'] = [cargo_json]
-                print("Adding first cargo to this boat.")
-
-            client.put(boat)
-
-            cargo["carrier"]["id"] = boat.key.id
-            cargo["carrier"]["name"] = boat["name"]
-            cargo["carrier"]["boat_url"] = boat["boat_url"]
-
-            print("After loading cargo: ")
-            print("cargo[carrier] is: ",cargo["carrier"])
-            print("cargo[carrier][id] is: ", cargo["carrier"]["id"])
-            print("cargo[carrier][name] is: ",cargo["carrier"]["name"])
-            print("cargo[carrier][boat_url] is: ", cargo["carrier"]["boat_url"])
-
-            client.put(cargo)
-
-            return("Cargo loaded", 200)
-
-        # B. Otherwise, cargo already assigned somewhere, so 403 error.
+        # Update boat side
+        cargo_id = cargo.key.id
+        if 'cargo' in boat.keys():
+            boat['cargo'].append(cargo_id)
         else:
-            print("Cargo already assigned to a boat, cannot load here.")
-            return("Cargo already assigned to a boat.", 403)
+            boat['cargo'] = [cargo_id]
+        client.put(boat)
+        print("cargo[carrier][id]:", cargo["carrier"]["id"])
 
+
+        return ("Cargo loaded", 200)
 
     #---- DELETE: REMOVE A SPECIFIC CARGO FROM A BOAT ----#
     if request.method == 'DELETE':
@@ -206,7 +191,7 @@ def add_delete_docking(bid,cid):
             # 2. Update the cargo[carrier] = null
             cargo["carrier"]["id"] = "null"
             cargo["carrier"]["name"] = "null"
-            cargo["carrier"]["boat_url"] = "null"
+            # cargo["carrier"]["boat_url"] = "null"
 
             client.put(cargo)
 
