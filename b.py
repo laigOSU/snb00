@@ -24,6 +24,7 @@ def boats_get_post():
     #---- GET: VIEW ALL BOATS ----#
     elif request.method == 'GET':
         query = client.query(kind=constants.boats)
+        print("query is: ", query)
         q_limit = int(request.args.get('limit', '3'))
         q_offset = int(request.args.get('offset', '0'))
         g_iterator = query.fetch(limit= q_limit, offset=q_offset)
@@ -37,6 +38,7 @@ def boats_get_post():
         for e in results:
             e["id"] = e.key.id
         output = {"boats": results}
+
         if next_url:
             output["next"] = next_url
         return json.dumps(output)
@@ -210,3 +212,154 @@ def add_delete_docking(bid,cid):
 
         print("Cargo #", cid, "unloaded.")
         return("Cargo removed", 200)
+
+
+#---- GET: VIEW ALL CARGO ON A SPECIFIC BOAT ----#
+@bp.route('/<bid>/cargos', methods=['GET'])
+def get_cargo_on_boat(bid):
+    boat_key = client.key(constants.boats, int(bid))
+    boat = client.get(key=boat_key)
+    query = client.query(kind=constants.boats)
+    first_key = client.key(constants.boats,int(bid))
+    query.key_filter(first_key, '=')
+
+    # SLICING
+    for e in query.fetch():
+        print("e is: ", e)
+        print("e[cargo] is: ", e["cargo"])
+        load = e["cargo"]
+        slicedload = [load[i:i+1] for i in range(0, len(load), 1)]
+        print("\n")
+        print("slicedload is: ", slicedload)
+        jsonifyLoad = json.loads(load)
+        print("\n")
+        print("jsonifyLoad: ", str(jsonifyLoad))
+
+
+    return('', 200)
+
+
+
+
+
+
+
+
+
+
+    # results = list(query.fetch())
+     # query = client.query(kind=constants.slips)
+     # first_key = client.key(constants.slips,int(id))
+     # query.key_filter(first_key,'=')
+     # results = list(query.fetch())
+
+    # query.projection = ['cargo']
+    # q_limit = int(request.args.get('limit', '3'))
+    # q_offset = int(request.args.get('offset', '0'))
+    # g_iterator = query.fetch(limit= q_limit, offset=q_offset)
+    # pages = g_iterator.pages
+    # results = list(next(pages))
+    # if g_iterator.next_page_token:
+    #     next_offset = q_offset + q_limit
+    #     next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+    # else:
+    #     next_url = None
+    # for e in results:
+    #     print("e[cargo] is: ", e["cargo"])
+    #
+    # output = {"cargolist": results}
+    # if next_url:
+    #     output["next"] = next_url
+    # return json.dumps(output)
+    # #
+
+    ###
+    # cargo_list = []
+    # for e in query.fetch():
+    #     # cargo_json = {"id": cargo.id, "cargo_url": cargo["cargo_url"]}
+    #     print("e is: ", e)
+    #     print("e[cargo] is: ", e["cargo"])
+    #     load = e["cargo"]
+
+    ###
+
+      # load = boat["cargo"]
+#     print("sliced load is:")
+#     print ([load[i:i+3] for i in range(0, len(load), 3)])
+#     print("\n\n")
+#
+#     slicedload = [load[i:i+3] for i in range(0, len(load), 3)]
+#     for i in slicedload:
+#         print("This slice: ", i)
+#         print("\n")
+
+        # cargo_list.append(e['cargo'][e])
+
+    # print("cargo_list is:")
+    # print(cargo_list)
+
+    # results = list(query.fetch())
+    # print("\n")
+    # print("results = list(query.fetch()) is:")
+    # print(results)
+    # print("\n")
+
+
+
+    # query = client.query(kind=constants.cargos)
+    # queryresults = list(query.fetch())
+    # print("queryresults: ", queryresults)
+    # for e in queryresults:
+    #     queryCarrier = client.query(kind="carrier")
+    #     queryCarrier.add_filter('id', '=', bid)
+    #     queryCarrierResults = list(queryCarrier.fetch())
+    #     print("queryCarrierResults: ", queryCarrierResults)
+    #
+    # return('',200)
+
+    # cargo_list = []
+    # if 'cargo' in boat.keys():
+    #     # cargo_json = {"id": cargo.id, "cargo_url": cargo["cargo_url"]}
+    #     print("boat[cargo] is: ")
+    #     print(boat["cargo"])
+    #     print("\n\n")
+    #
+    #     load = boat["cargo"]
+    #     print("sliced load is:")
+    #     print ([load[i:i+3] for i in range(0, len(load), 3)])
+    #     print("\n\n")
+    #
+    #     slicedload = [load[i:i+3] for i in range(0, len(load), 3)]
+    #     for i in slicedload:
+    #         print("This slice: ", i)
+    #         print("\n")
+    #
+    #     # query = client.query(kind=constants.cargos)
+    #     # query = boat["cargo"]
+    # #     q_limit = int(request.args.get('limit', '3'))
+    # #     q_offset = int(request.args.get('offset', '0'))
+    # #     g_iterator = query.fetch(limit= q_limit, offset=q_offset)
+    # #     pages = g_iterator.pages
+    # #     results = list(next(pages))
+    # #     if g_iterator.next_page_token:
+    # #         next_offset = q_offset + q_limit
+    # #         next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+    # #     else:
+    # #         next_url = None
+    # #
+    # #     output = {"cargos on this boat": results}
+    # #     if next_url:
+    # #         output["next"] = next_url
+    #     # return json.dumps(output)
+    #     return('', 200)
+    # else:
+    #     return json.dumps([])
+
+#     cargo_list  = []
+#     if 'cargo' in boats.keys():
+#         for cid in boats['cargo']:
+#             boat_key = client.key(constants.boats, int(bid))
+#             boat_list.append(boat_key)
+#         return json.dumps(client.get_multi(boat_list))
+#     else:
+#         return json.dumps([])
