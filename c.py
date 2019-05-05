@@ -26,13 +26,22 @@ def cargos_get_post():
     #---- GET: VIEW ALL CARGOS ----#
     elif request.method == 'GET':
         query = client.query(kind=constants.cargos)
-        results = list(query.fetch())
+        q_limit = int(request.args.get('limit', '3'))
+        q_offset = int(request.args.get('offset', '0'))
+        g_iterator = query.fetch(limit= q_limit, offset=q_offset)
+        pages = g_iterator.pages
+        results = list(next(pages))
+        if g_iterator.next_page_token:
+            next_offset = q_offset + q_limit
+            next_url = request.base_url + "?limit=" + str(q_limit) + "&offset=" + str(next_offset)
+        else:
+            next_url = None
         for e in results:
             e["id"] = e.key.id
-            # url = "http://localhost:8080/cargos/" + str(e.key.id)
-            # url = constants.appspot_url + constants.cargos + "/" + str(e.key.id)
-            # e["cargo_url"] =url
-        return json.dumps(results)
+        output = {"cargos": results}
+        if next_url:
+            output["next"] = next_url
+        return json.dumps(output)
 
     else:
         return 'Method not recognized'
