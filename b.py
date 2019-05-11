@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, make_response
 from google.cloud import datastore
 import json
 import constants
@@ -15,7 +15,7 @@ def boats_get_post():
         new_boat = datastore.entity.Entity(key=client.key(constants.boats))
         new_boat.update({"name": content["name"], 'type': content['type'], 'length': content['length']})
         client.put(new_boat)
-        return str(new_boat.key.id)
+        return (str(new_boat.key.id), 201)
 
     #---- GET: VIEW ALL BOATS ----#
     elif request.method == 'GET':
@@ -24,9 +24,22 @@ def boats_get_post():
         for e in results:
             e["id"] = e.key.id
             # url = "http://localhost:8080/boats/" + str(e.key.id)
-            url = constants.local_url + constants.boats + "/" + str(e.key.id)
+            url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
             e["boat_url"] =url
-        return json.dumps(results)
+        if 'application/json' in request.accept_mimetypes:
+            # return json.dumps(results)
+            res = make_response(json.dumps(results))
+            res.mimetype = 'application/json'
+            # res.mimetype = 'application/json'
+            res.status_code = 200
+            return res
+        else:
+            output = 'Not Acceptable: Must accept application/json only'
+            res = make_response(output)
+            # res.mimetype = 'application/json'
+            res.status_code = 406
+            return res
+            # return('Not Acceptable: Must accept application/json only', 406)
 
     else:
         return 'Method not recognized'
@@ -77,7 +90,7 @@ def boats_put_delete_get(id):
         for e in results:
             e["id"] = id
             # url = "http://localhost:8080/boats/" + id
-            url = constants.local_url + constants.boats + "/" + id
+            url = constants.appspot_url + constants.boats + "/" + id
             e["boat_url"] =url
         return json.dumps(results)
 
