@@ -1,7 +1,9 @@
 from flask import Blueprint, request, make_response
 from google.cloud import datastore
+from json2html import *
 import json
 import constants
+
 
 client = datastore.Client()
 
@@ -26,20 +28,11 @@ def boats_get_post():
             # url = "http://localhost:8080/boats/" + str(e.key.id)
             url = constants.appspot_url + constants.boats + "/" + str(e.key.id)
             e["boat_url"] =url
-        if 'application/json' in request.accept_mimetypes:
-            # return json.dumps(results)
-            res = make_response(json.dumps(results))
-            res.mimetype = 'application/json'
-            # res.mimetype = 'application/json'
-            res.status_code = 200
-            return res
-        else:
-            output = 'Not Acceptable: Must accept application/json only'
-            res = make_response(output)
-            # res.mimetype = 'application/json'
-            res.status_code = 406
-            return res
-            # return('Not Acceptable: Must accept application/json only', 406)
+        # View the list of boats as json
+        res = make_response(json.dumps(results))
+        res.mimetype = 'application/json'
+        res.status_code = 200
+        return res
 
     else:
         return 'Method not recognized'
@@ -92,6 +85,28 @@ def boats_put_delete_get(id):
             # url = "http://localhost:8080/boats/" + id
             url = constants.appspot_url + constants.boats + "/" + id
             e["boat_url"] =url
+        # If client's Accept header is set application/json:
+        if 'application/json' in request.accept_mimetypes:
+            # return json.dumps(results)
+            res = make_response(json.dumps(results))
+            res.mimetype = 'application/json'
+            # res.mimetype = 'application/json'
+            res.status_code = 200
+            return res
+        # If client's Accept header is set to text/html:
+        elif 'text/html' in request.accept_mimetypes:
+            # return json.dumps(results)
+            res = make_response(json2html.convert(json = json.dumps(results)))
+            res.headers.set('Content-Type', 'text/html')
+            # res.mimetype = 'text/html'
+            res.status_code = 200
+            return res
+        else:
+             output = 'Not Acceptable: Must accept application/json or text/html only'
+             res = make_response(output)
+             res.status_code = 406
+             return res
+             # return('Not Acceptable: Must accept application/json only', 406)
         return json.dumps(results)
 
 
